@@ -26,6 +26,7 @@ Route::group(['middleware' => ['auth:api']], function(){
     Route::post('/logout',[\App\Http\Controllers\AuthController::class,'logout']);
     Route::post('/',[\App\Http\Controllers\api\home\IndexController::class, 'index']);
 
-    Route::resource('demand','\App\Http\Controllers\api\demand\IndexController');
+    Route::resource('/demand','\App\Http\Controllers\api\demand\IndexController');
+    Route::post('/demand/message',['\App\Http\Controllers\api\demand\IndexController','message']);
 
 });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api\demand;
 
 use App\Http\Controllers\Controller;
 use App\Models\Demand;
+use App\Models\DemandMessage;
 use Illuminate\Http\Request;
 
 class IndexController extends Controller
@@ -55,10 +56,11 @@ class IndexController extends Controller
             'text' => $request->text
         ]);
 
-        if ($user) 
+        if ($create) 
         {
             return response()->json([
                 'success' => true,
+                'message' => 'Talebiniz Alındı'
             ]);
         } 
         else 
@@ -78,7 +80,23 @@ class IndexController extends Controller
      */
     public function show($id)
     {
-        //
+        $userId = request()->user()->id;
+        $check = Demand::where('id',$id)->where('userId',$userId)->count();
+        if ($check == 0) 
+        {
+            return response()->json([
+                'success' => false,
+                'message' => 'Böyle bir talep bulunamadı.'
+            ]);
+        }
+
+        $demand = Demand::where('id',$id)->where('userId',$userId)->first();
+        $message = DemandMessage::where('demandId',$id)->with('user')->orderBy('id','desc')->get();
+        return response()->json([
+            'success' => true,
+            'demand' => $demand,
+            'message' => $message
+        ]);
     }
 
     /**
@@ -113,5 +131,48 @@ class IndexController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function message(Request $request)
+    {
+        $id = $request->id;
+        $userId = request()->user()->id;
+        $check = Demand::where('id',$id)->where('userId',$userId)->count();
+        if ($check == 0) 
+        {
+            return response()->json([
+                'success' => false,
+                'message' => 'Böyle bir talep bulunamadı.'
+            ]);
+        }
+
+        if ($request->text == "") 
+        {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mesaj Boş Gönderilemez'
+            ]);
+        }
+
+        $create = DemandMessage::create([
+            'demandId' => $id,
+            'userId' => $userId,
+            'text' => $request->text
+        ]);
+
+        if ($create) 
+        {
+            return response()->json([
+                'success' => true,
+                'message' => DemandMessage::where('demandId',$id)->with('user')->orderBy('id','desc')->get()
+            ]);
+        }
+        else 
+        {
+            return response()->json([
+                'success' => false,
+                'message' => "Mesaj Gönderilemedi."
+            ]);
+        }
     }
 }
