@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Demand;
+use App\Models\DemandMessage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -23,6 +26,13 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $demands = Demand::with('customer')->orderBy('updated_at','desc')->get()->map(function($item){
+            $item['count'] = DemandMessage::where('demandId',$item->id)
+            ->where('userId','≠',Auth::id())
+            ->where('isRead',1)
+            ->count();
+            return $item;
+        });
+        return view('home',compact('demands'));
     }
 }

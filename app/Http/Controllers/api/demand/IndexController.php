@@ -17,7 +17,16 @@ class IndexController extends Controller
     public function index()
     {
         $user = request()->user();
-        $data = Demand::where('userId', $user->id)->orderBy('updated_at')->get();
+        $data = Demand::where('userId', $user->id)->orderBy('updated_at')->get()->map(function ($item) use ($user) {
+            $item['count'] = DemandMessage::where('demandId', $item->id)
+                ->where('userId', '≠',$user->id)
+                ->where('isRead', 1)
+                ->count();
+            return $item;
+        });
+
+
+
 
         return response()->json([
             'success' => true,
@@ -56,15 +65,12 @@ class IndexController extends Controller
             'text' => $request->text
         ]);
 
-        if ($create) 
-        {
+        if ($create) {
             return response()->json([
                 'success' => true,
                 'message' => 'Talebiniz Alındı'
             ]);
-        } 
-        else 
-        {
+        } else {
             return response()->json([
                 'success' => false,
                 'message' => 'Talep Oluşturulamadı'
@@ -81,17 +87,19 @@ class IndexController extends Controller
     public function show($id)
     {
         $userId = request()->user()->id;
-        $check = Demand::where('id',$id)->where('userId',$userId)->count();
-        if ($check == 0) 
-        {
+        $check = Demand::where('id', $id)->where('userId', $userId)->count();
+        if ($check == 0) {
             return response()->json([
                 'success' => false,
                 'message' => 'Böyle bir talep bulunamadı.'
             ]);
         }
 
-        $demand = Demand::where('id',$id)->where('userId',$userId)->first();
-        $message = DemandMessage::where('demandId',$id)->with('user')->orderBy('id','desc')->get();
+        $demand = Demand::where('id', $id)->where('userId', $userId)->first();
+        DemandMessage::where('demandId',$id)->where('isRead',1)->where('userId','≠',$userId)->update([
+            'isRead' => 0
+        ]);
+        $message = DemandMessage::where('demandId', $id)->with('user')->orderBy('id', 'desc')->get();
         return response()->json([
             'success' => true,
             'demand' => $demand,
@@ -137,17 +145,15 @@ class IndexController extends Controller
     {
         $id = $request->id;
         $userId = request()->user()->id;
-        $check = Demand::where('id',$id)->where('userId',$userId)->count();
-        if ($check == 0) 
-        {
+        $check = Demand::where('id', $id)->where('userId', $userId)->count();
+        if ($check == 0) {
             return response()->json([
                 'success' => false,
                 'message' => 'Böyle bir talep bulunamadı.'
             ]);
         }
 
-        if ($request->text == "") 
-        {
+        if ($request->text == "") {
             return response()->json([
                 'success' => false,
                 'message' => 'Mesaj Boş Gönderilemez'
@@ -160,15 +166,13 @@ class IndexController extends Controller
             'text' => $request->text
         ]);
 
-        if ($create) 
-        {
+        if ($create) {
+            Demand::where('id', $id)->update([]);
             return response()->json([
                 'success' => true,
-                'message' => DemandMessage::where('demandId',$id)->with('user')->orderBy('id','desc')->get()
+                'message' => DemandMessage::where('demandId', $id)->with('user')->orderBy('id', 'desc')->get()
             ]);
-        }
-        else 
-        {
+        } else {
             return response()->json([
                 'success' => false,
                 'message' => "Mesaj Gönderilemedi."

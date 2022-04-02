@@ -1,23 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Dashboard') }}</div>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">Talepler</div>
 
-                <div class="card-body">
-                    @if (session('status'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
+                    @foreach ($demands as $item)
+                        <div class="card-body">
+                            <a href="{{ route('demand.show',['demand'=> $item->id]) }}" class="list-group-item">
+                                {{ $item->customer->name }} - {{ $item->title }} <span>({{ $item->count }})</span>
+                            </a>
                         </div>
-                    @endif
-
-                    {{ __('You are logged in!') }}
+                    @endforeach
                 </div>
             </div>
         </div>
     </div>
-</div>
 @endsection

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->integer('userId');
             $table->integer('demandId');
+            $table->integer('isRead')->default(1);
             $table->text('text');
             $table->timestamps();
         });

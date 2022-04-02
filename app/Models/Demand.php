@@ -8,10 +8,31 @@ use Illuminate\Database\Eloquent\Model;
 class Demand extends Model
 {
     use HasFactory;
+    const  CLOSED = 1;
+    const  OPEN = 0;
+
 
     protected $fillable = ['userId', 'title', 'text'];
     protected $appends = ['date'];
 
+    public function customer()
+    {
+        return $this->hasOne(User::class,'id','userId');
+    }
+
+    public function getStatusTextAttribute()
+    {
+        switch ($this->attributes['status']) 
+        {
+            case self::CLOSED:
+                return "Kapalı";
+                break;
+            
+            default:
+               return "Açık";
+                break;
+        }
+    }
     static function timeAgo($gelen_zaman)
     {
         $gelen_zaman =  strtotime($gelen_zaman);
